@@ -23,7 +23,8 @@
 import {ref} from 'vue'
 // js 코딩 장소
 export default {
-    setup(props, context) {
+    emits: ['add-todo'],
+    setup(props, {emit}) {
         // 추가할 할일
         const todo = ref('');
         // 내용 입력 안내창 여부
@@ -32,7 +33,7 @@ export default {
         const AddTodo = () => {
             // 할 일의 내용을 배열로 추가한다.
             // 이때 상위 컴포넌트로 전달한다.
-            context.emit('add-todo', {
+            emit('add-todo', {
                 id: Date.now(),
                 subject: todo.value,
                 complete: false

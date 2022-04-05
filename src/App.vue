@@ -11,7 +11,7 @@
     </div>
 
     <!-- Todo 목록창  -->
-    <TodoList v-bind:todos="todos"/>
+    <TodoList v-bind:todos="todos" v-on:toggle-todo="ToggleTodo" v-on:delete-todo="DeleteTodo"/>
   </div>  
 </template>
 
@@ -31,15 +31,19 @@
       const todos = ref([{
         id: 1,
         subject: '할일',
-        completed: false
+        complete: false
       }]);
 
       // TodoSimpleForm에서 
       // add-todo 이벤트로 전달된 객체를
       // 처리해 주는 콜백 함수
       const AddTodo = (todo) => {
-        console.log(todo);
+        // console.log(todo);
         todos.value.push(todo);
+      }
+
+      const ToggleTodo = (index) => {
+        todos.value[index].complete = !todos.value[index].complete;
       }
 
       const DeleteTodo = (index) => {
@@ -51,7 +55,8 @@
       return {
         todos,
         AddTodo,
-        DeleteTodo
+        DeleteTodo,
+        ToggleTodo
       }
     }
   }
