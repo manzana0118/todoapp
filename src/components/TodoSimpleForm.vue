@@ -1,6 +1,6 @@
 <template>
     <!-- html 태그 작성 장소 -->
-    Todo 입력 폼
+    <!-- Todo 입력 폼 -->
     <form action="" v-on:submit.prevent="AddTodo">
         <div class="d-flex">
             <div class="flex-grow-1 mr-2">
