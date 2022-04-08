@@ -1,14 +1,18 @@
 <template>
   <div class="container">
-    <h1>Todo List</h1>
+    <!-- 타이틀 -->
+    <AppTitle :apptitle="apptext"/>
 
     <!-- 할일 검색 입력창 -->
-    <input class="form-control mb-2" v-model="SearchText" type="text" placeholder="Search Todo List">
-    <div class="red">{{error}}</div>
+    <input class="form-control mb-2" v-model="searchText" type="text" placeholder="Search Todo List">
+    
+    <!-- 에러 안내창 -->
+    <ErrorBox :errtext="error"/>
+
     <hr/>
 
     <!-- 할일 추가 입력창 -->
-    <TodoSimpleForm v-on:add-todo="AddTodo" />
+    <TodoSimpleForm @add-todo="addTodo" />
 
 
     <!-- 목록 없음 안내창 -->
@@ -17,38 +21,11 @@
     </div>
 
     <!-- Todo 목록창  -->
-    <TodoList v-bind:todos="todos" v-on:toggle-todo="ToggleTodo" v-on:delete-todo="DeleteTodo"/>
+    <TodoList :todos="todos" @toggle-todo="toggleTodo" @delete-todo="deleteTodo"/>
 
     <!-- 페이지네이션 -->
     <hr/>
-    <nav aria-label="Page navigation example">
-      <ul class="pagination">
-        <li 
-        class="page-item"
-        v-if="nowPage !==1"
-        >
-          <a class="page-link" v-on:click="GetTodo(nowPage - 1)" style="cursor:pointer" aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-        </li>
-        <li 
-        class="page-item"
-        v-for="count in numberOfPages"
-        v-bind:key="count"
-        v-bind:class="nowPage === count ? 'active': '' "
-        >
-        <a class="page-link" style="cursor:pointer" v-on:click="GetTodo(count)">{{count}}</a>
-        </li>
-        <li 
-        class="page-item"
-        v-if="nowPage !== numberOfPages"
-        >
-        <a class="page-link" style="cursor:pointer" v-on:click="GetTodo(nowPage + 1)" aria-label="Next">
-          <span aria-hidden="true">&raquo;</span>
-        </a>
-        </li>
-      </ul>
-    </nav>
+    <AppPagination :currentPage="nowPage" :allPage="numberOfPages" @page-show="getTodo"/>
   </div>  
 </template>
 
@@ -58,13 +35,22 @@
 
   import TodoSimpleForm from './components/TodoSimpleForm.vue'
   import TodoList from './components/TodoList.vue'
+  import AppTitle from './components/AppTitle.vue'
+  import ErrorBox from './components/ErrorBox.vue'
+  import AppPagination from './components/AppPagination.vue'
 
   export default {
     components: {
+      AppTitle,
+      ErrorBox,
+      AppPagination,
       TodoSimpleForm,
-      TodoList
+      TodoList,
     },
     setup() {
+      // 타이틀
+      const apptext = ref('Todo List');
+
       // 할일 목록(배열)을 저장
       const todos = ref([{
         id: 1,
@@ -92,25 +78,25 @@
       });
 
       // 할일 검색 관련
-      const SearchText = ref('');
-      watch(SearchText, () => {
-        GetTodo(1)
+      const searchText = ref('');
+      watch(searchText, () => {
+        getTodo(1)
       });
 
       // DB에서 자료 불러오기
-      const GetTodo = async(page = nowPage.value) => {
+      const getTodo = async(page = nowPage.value) => {
         error.value = '';
         // 전달된 값을 현재 페이지 번호로 받아들인다.
         nowPage.value = page;
         try{
           // 서버에서 자료를 요청한 후에 결과를
           // res에서 받는다. (response)
-          const res = await axios.get(`http://localhost:3000/todos?subject_like=${SearchText.value}&_page=${page}&_limit=${limit}&_sort=id&_order=desc`); 
+          const res = await axios.get(`http://localhost:3000/todos?subject_like=${searchText.value}&_page=${page}&_limit=${limit}&_sort=id&_order=desc`); 
           // 총 todos 개수 파악
           totalTodos.value = res.headers["x-total-count"];
 
           if(numberOfPages.value < nowPage.value) {
-            GetTodo(nowPage.value - 1);
+            getTodo(nowPage.value - 1);
             return;
           }
           // response가 될 때 res라는 객체에 .data를 화면에 보여줄 목록으로 출력한다.
@@ -122,12 +108,12 @@
       };
 
       // 최초의 데이터를 호출한다.
-      GetTodo();
+      getTodo();
 
       // TodoSimpleForm에서 
       // add-todo 이벤트로 전달된 객체를
       // 처리해 주는 콜백 함수
-      const AddTodo = async (todo) => {
+      const addTodo = async (todo) => {
         error.value = '';
         try {
             // DB에 저장이 되어야 하는 데이터
@@ -135,7 +121,7 @@
             subject: todo.subject,
             complete: todo.complete
           });
-          GetTodo(1)
+          getTodo(1)
         }catch(err) {
           console.log(err);
           error.value = "서버를 확인해 주세요.";
@@ -143,7 +129,7 @@
         
       };
 
-      const ToggleTodo = async (index) => {
+      const toggleTodo = async (index) => {
         // complete를 업데이트 하겠다.
         // id를 통해서 내용을 업데이트 하겠다.
         error.value = '';
@@ -161,7 +147,7 @@
         }
       };
 
-      const DeleteTodo = async (index) => {
+      const deleteTodo = async (index) => {
         // console.log('지우기' + index);
         // 배열 내에서 순서 번호로부터 1개 제거
         const id = todos.value[index].id;
@@ -170,7 +156,7 @@
           // 전체 삭제가 아니라 id와 같은 DB를 삭제
           await axios.delete('http://localhost:3000/todos/' + id);
           // 서버에서 목록을 다시 호출한다.
-          GetTodo(nowPage.value);
+          getTodo(nowPage.value);
         }catch(err){
           console.log(err);
           error.value = "삭제에 실패했습니다.";
@@ -178,13 +164,14 @@
       };
 
       return {
+        apptext,
         todos,
-        AddTodo,
-        DeleteTodo,
-        ToggleTodo,
-        SearchText,
+        addTodo,
+        deleteTodo,
+        toggleTodo,
+        searchText,
         error,
-        GetTodo,
+        getTodo,
         totalTodos,
         limit,
         nowPage,
