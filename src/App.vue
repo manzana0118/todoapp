@@ -1,192 +1,24 @@
 <template>
-  <div class="container">
-    <!-- 타이틀 -->
-    <AppTitle :apptitle="apptext"/>
-
-    <!-- 할일 검색 입력창 -->
-    <input class="form-control mb-2" v-model="searchText" type="text" placeholder="Search Todo List">
-    
-    <!-- 에러 안내창 -->
-    <ErrorBox :errtext="error"/>
-
-    <hr/>
-
-    <!-- 할일 추가 입력창 -->
-    <TodoSimpleForm @add-todo="addTodo" />
-
-
-    <!-- 목록 없음 안내창 -->
-    <div v-if="!todos.length" class="mt-2">
-      생성된 Todo 목록이 없습니다.
+<!-- 상단메뉴 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container-fluid">
+      <router-link class="nav-link" :to="{name: 'Home'}">Home</router-link>
+      <router-link class="nav-link" :to="{name: 'Todos'}">Todos</router-link>
+      <router-link class="nav-link" :to="{name: 'About'}">About</router-link>
+      <router-link class="nav-link" :to="{name:'Profile'}">Profile</router-link>      
     </div>
+  </nav>
+<!-- 라우터 화면 보여주기 -->
+<router-view/>
 
-    <!-- Todo 목록창  -->
-    <TodoList :todos="todos" @toggle-todo="toggleTodo" @delete-todo="deleteTodo"/>
-
-    <!-- 페이지네이션 -->
-    <hr/>
-    <AppPagination :currentPage="nowPage" :allPage="numberOfPages" @page-show="getTodo"/>
-  </div>  
 </template>
 
 <script>
-  import {computed, ref, watch} from 'vue'
-  import axios from 'axios'
+export default {
 
-  import TodoSimpleForm from './components/TodoSimpleForm.vue'
-  import TodoList from './components/TodoList.vue'
-  import AppTitle from './components/AppTitle.vue'
-  import ErrorBox from './components/ErrorBox.vue'
-  import AppPagination from './components/AppPagination.vue'
-
-  export default {
-    components: {
-      AppTitle,
-      ErrorBox,
-      AppPagination,
-      TodoSimpleForm,
-      TodoList,
-    },
-    setup() {
-      // 타이틀
-      const apptext = ref('Todo List');
-
-      // 할일 목록(배열)을 저장
-      const todos = ref([{
-        id: 1,
-        subject: '할일',
-        complete: false
-      }]);
-
-      // 에러 메세지
-      const error = ref('');
-
-      // 페이지네이션 관련
-      // 전체 todos 개수가 필요하다.
-      const totalTodos = ref(0);
-
-      // 한 화면당 보여줄 todo
-      const limit = 5;
-
-      // 현재 보여주는 페이지 번호
-      const nowPage = ref(1);
-
-      // 총 페이지 숫자
-      const  numberOfPages = computed( () => {
-        // 총 게시물 / 페이지당 출력 수 ===> 올림
-        return Math.ceil(totalTodos.value /  limit);
-      });
-
-      // 할일 검색 관련
-      const searchText = ref('');
-      watch(searchText, () => {
-        getTodo(1)
-      });
-
-      // DB에서 자료 불러오기
-      const getTodo = async(page = nowPage.value) => {
-        error.value = '';
-        // 전달된 값을 현재 페이지 번호로 받아들인다.
-        nowPage.value = page;
-        try{
-          // 서버에서 자료를 요청한 후에 결과를
-          // res에서 받는다. (response)
-          const res = await axios.get(`http://localhost:3000/todos?subject_like=${searchText.value}&_page=${page}&_limit=${limit}&_sort=id&_order=desc`); 
-          // 총 todos 개수 파악
-          totalTodos.value = res.headers["x-total-count"];
-
-          if(numberOfPages.value < nowPage.value) {
-            getTodo(nowPage.value - 1);
-            return;
-          }
-          // response가 될 때 res라는 객체에 .data를 화면에 보여줄 목록으로 출력한다.
-          todos.value = res.data;
-        }catch(err) {
-          console.log(err);
-          error.value = "자료를 불러오는데 실패했습니다."
-        }
-      };
-
-      // 최초의 데이터를 호출한다.
-      getTodo();
-
-      // TodoSimpleForm에서 
-      // add-todo 이벤트로 전달된 객체를
-      // 처리해 주는 콜백 함수
-      const addTodo = async (todo) => {
-        error.value = '';
-        try {
-            // DB에 저장이 되어야 하는 데이터
-            await axios.post('http://localhost:3000/todos/',{
-            subject: todo.subject,
-            complete: todo.complete
-          });
-          getTodo(1)
-        }catch(err) {
-          console.log(err);
-          error.value = "서버를 확인해 주세요.";
-        }
-        
-      };
-
-      const toggleTodo = async (index) => {
-        // complete를 업데이트 하겠다.
-        // id를 통해서 내용을 업데이트 하겠다.
-        error.value = '';
-        const id = todos.value[index].id;
-        try {
-          // 서버의 DB를 업데이트 한다.
-          await axios.patch('http://localhost:3000/todos/' + id, {
-            complete: !todos.value[index].complete
-          });
-          // 웹브라우저의 todo의 화면을 표현한다.
-          todos.value[index].complete = !todos.value[index].complete;
-        } catch(err) {
-          console.log(err);
-          err.value = "업데이트에 실패하였습니다.";
-        }
-      };
-
-      const deleteTodo = async (index) => {
-        // console.log('지우기' + index);
-        // 배열 내에서 순서 번호로부터 1개 제거
-        const id = todos.value[index].id;
-        error.value = '';
-        try {
-          // 전체 삭제가 아니라 id와 같은 DB를 삭제
-          await axios.delete('http://localhost:3000/todos/' + id);
-          // 서버에서 목록을 다시 호출한다.
-          getTodo(nowPage.value);
-        }catch(err){
-          console.log(err);
-          error.value = "삭제에 실패했습니다.";
-        }
-      };
-
-      return {
-        apptext,
-        todos,
-        addTodo,
-        deleteTodo,
-        toggleTodo,
-        searchText,
-        error,
-        getTodo,
-        totalTodos,
-        limit,
-        nowPage,
-        numberOfPages
-      };
-    }
-  }
+}
 </script>
 
 <style>
-.red {
-  color: red;
-}
-.todocss {
-  color: gray;
-  text-decoration: line-through;
-}
+
 </style>

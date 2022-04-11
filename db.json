@@ -52,12 +52,12 @@
     },
     {
       "subject": "9",
-      "complete": false,
+      "complete": true,
       "id": 12
     },
     {
       "subject": "10",
-      "complete": false,
+      "complete": true,
       "id": 13
     },
     {
@@ -67,23 +67,8 @@
     },
     {
       "subject": "잠온다",
-      "complete": false,
+      "complete": true,
       "id": 15
-    },
-    {
-      "subject": "프로필 사진 찍기",
-      "complete": false,
-      "id": 17
-    },
-    {
-      "subject": "파마하기",
-      "complete": false,
-      "id": 18
-    },
-    {
-      "subject": "앞머리 거슬린다",
-      "complete": false,
-      "id": 19
     }
   ]
 }
