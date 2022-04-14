@@ -1,7 +1,11 @@
 <template>
     <div class="container">
         <!-- 타이틀 -->
-        <AppTitle :apptitle="apptext" />
+        <div class="d-flex justify-content-between mt-3 mb-3">
+            <AppTitle :apptitle="apptext" />
+            <button class="btn btn-primary btn-sm" @click="moveToCreate">Create Todo</button>
+        </div>
+        
 
         <!-- 할일 검색 입력창 -->
         <input class="form-control mb-2" v-model="searchText" type="text" placeholder="Search Todo List"
@@ -11,10 +15,6 @@
         <ErrorBox :errtext="error" />
 
         <hr />
-
-        <!-- 할일 추가 입력창 -->
-        <TodoSimpleForm @add-todo="addTodo" />
-
 
         <!-- 목록 없음 안내창 -->
         <div v-if="!todos.length" class="mt-2">
@@ -27,6 +27,9 @@
         <!-- 페이지네이션 -->
         <hr />
         <AppPagination :currentPage="nowPage" :allPage="numberOfPages" @page-show="getTodo" />
+
+        <!-- 안내창 -->
+        <ToastBox v-if="showToast" :message="toastMessage" :type="toastAlertType"/>
     </div>
 </template>
 
@@ -39,21 +42,30 @@
     import axios from 'axios'
 
 // src 폴더인 경우에만 @을 통해서 접근이 가능하다.
-    import TodoSimpleForm from '@/components/TodoSimpleForm.vue'
     import TodoList from '@/components/TodoList.vue'
     import AppTitle from '@/components/AppTitle.vue'
     import ErrorBox from '@/components/ErrorBox.vue'
     import AppPagination from '@/components/AppPagination.vue'
+    import ToastBox from '@/components/ToastBox.vue'
+    import { useToast } from '@/composables/toast.js'
+    import { useRouter } from 'vue-router'
 
     export default {
         components: {
             AppTitle,
             ErrorBox,
             AppPagination,
-            TodoSimpleForm,
             TodoList,
+            ToastBox,
         },
         setup() {
+            // 할일 생성 페이지로 이동
+            const router = useRouter();
+            const moveToCreate = () => {
+                router.push({
+                    name: 'TodoCreate'
+                })
+            }
             // 타이틀
             const apptext = ref('Todo List');
 
@@ -82,6 +94,14 @@
                 // 총 게시물 / 페이지당 출력 수 ===> 올림
                 return Math.ceil(totalTodos.value / limit);
             });
+
+            // ToastBox 관련
+            const {
+                showToast,
+                toastMessage,
+                triggerToast,
+                toastAlertType
+            } = useToast();
 
             // 할일 검색 관련
             const searchText = ref('');
@@ -126,6 +146,7 @@
                 } catch (err) {
                     console.log(err);
                     error.value = "자료를 불러오는데 실패했습니다."
+                    triggerToast('자료를 불러오는데 실패했습니다.', 'danger');
                 }
             };
 
@@ -147,6 +168,7 @@
                 } catch (err) {
                     console.log(err);
                     error.value = "서버를 확인해 주세요.";
+                    triggerToast('서버를 확인해 주세요.', 'danger');
                 }
 
             };
@@ -163,6 +185,7 @@
                     });
                     // 웹브라우저의 todo의 화면을 표현한다.
                     todos.value[index].complete = checked
+                    triggerToast('상태를 변경하였습니다.', 'success');
                 } catch (err) {
                     console.log(err);
                     err.value = "업데이트에 실패하였습니다.";
@@ -170,18 +193,22 @@
             };
 
             const deleteTodo = async (index) => {
-                // console.log('지우기' + index);
                 // 배열 내에서 순서 번호로부터 1개 제거
-                const id = todos.value[index].id;
+                
+                // 순서 번호를 이용해서 목록에서 id를 추출 = todos.value[index].id
+                // 아래는 직접 id를 받아오는 경우 
+                const id = index;
                 error.value = '';
                 try {
                     // 전체 삭제가 아니라 id와 같은 DB를 삭제
                     await axios.delete('http://localhost:3000/todos/' + id);
+                    triggerToast('항목을 삭제하였습니다.', 'danger');
                     // 서버에서 목록을 다시 호출한다.
                     getTodo(nowPage.value);
                 } catch (err) {
                     console.log(err);
                     error.value = "삭제에 실패했습니다.";
+                    triggerToast('삭제에 실패했습니다.', 'danger');
                 }
             };
 
@@ -198,7 +225,13 @@
                 totalTodos,
                 limit,
                 nowPage,
-                numberOfPages
+                numberOfPages,
+                ToastBox,
+                showToast,
+                toastMessage,
+                triggerToast,
+                toastAlertType,
+                moveToCreate
             };
         }
     }

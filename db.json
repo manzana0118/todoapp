@@ -7,12 +7,12 @@
     },
     {
       "subject": "프로필 만들기",
-      "complete": false,
+      "complete": true,
       "id": 2
     },
     {
       "subject": "클론코드 하기",
-      "complete": false,
+      "complete": true,
       "id": 3
     },
     {
@@ -51,24 +51,15 @@
       "id": 11
     },
     {
-      "subject": "9",
-      "complete": true,
-      "id": 12
-    },
-    {
-      "subject": "10",
-      "complete": true,
-      "id": 13
-    },
-    {
       "subject": "11",
       "complete": true,
       "id": 14
     },
     {
-      "subject": "업데이트합니다.",
-      "complete": true,
-      "id": 15
+      "subject": "떡볶이",
+      "complete": false,
+      "body": "123143",
+      "id": 17
     }
   ]
 }

@@ -10,15 +10,47 @@
   </nav>
 <!-- 라우터 화면 보여주기 -->
 <div class="container">
-  <router-view/>
+  <router-view @update-todo-toast="updateTodo" @new-todo-toast="newTodo" />
+  <!-- 안내창 -->
+        <ToastBox v-if="showToast" :message="toastMessage" :type="toastAlertType"/>
 </div>
 
 
 </template>
 
 <script>
-export default {
+import ToastBox from '@/components/ToastBox.vue'
+import { useToast } from '@/composables/toast.js'
 
+export default {
+  components: {
+    ToastBox,
+  },
+  setup() {
+    // ToastBox 관련
+      const {
+        showToast,
+        toastMessage,
+        triggerToast,
+        toastAlertType
+      } = useToast();
+
+    const updateTodo = () => {
+      triggerToast('목록이 업데이트 되었습니다.', 'success');
+    };
+    const newTodo = () => {
+      triggerToast('새로운 글이 추가되었습니다.', 'success');
+    };
+
+    return {
+      updateTodo,
+      newTodo,
+      showToast,
+      toastMessage,
+      triggerToast,
+      toastAlertType
+    }
+  }
 }
 </script>
 
