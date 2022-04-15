@@ -1,36 +1,41 @@
 <template>
     <div>
-        <div class="card mt-3" v-for="(todo, index) in todos" :key="todo.id">
-            <div class="card-body p-2 d-flex" @click="moveToPage(todo.id)" style="cursor:pointer">
-                <div class="flex-grow-1">
-                    <input type="checkbox" class="ml-2 mr-2" :checked="todo.complete" :id="todo.id" @change="toggleTodo(index, $event)" @click.stop>
-                    <span :class="{todocss:todo.complete}" :for="todo.id">
-                        {{ todo.subject }}
-                    </span>
+        <ListView :items="todos">
+            <template #default="{item, index}">
+                <div class="card-body p-2 d-flex" @click="moveToPage(item.id)" style="cursor:pointer">
+                    <div class="flex-grow-1">
+                        <input type="checkbox" class="ml-2 mr-2" :checked="item.complete" :id="item.id"
+                            @change="toggleTodo(index, $event)" @click.stop>
+                        <span :class="{todocss:item.complete}" :for="item.id">
+                            {{ item.subject }}
+                        </span>
+                    </div>
+                    <!-- 삭제 버튼 -->
+                    <div>
+                        <button class="btn btn-danger btn-sm" @click.stop="openModal(item.id)">Delete</button>
+                    </div>
                 </div>
-                <!-- 삭제 버튼 -->
-                <div>
-                    <button class="btn btn-danger btn-sm" @click.stop="openModal(todo.id)">Delete</button>
-                </div>
-            </div>
-        </div>
+            </template>
+        </ListView>
     </div>
 
     <teleport to="#modal">
         <!-- 경고창 -->
-        <ModalWin v-if="showModal" @close="closeModal" @delete="deleteTodo"/>
+        <DeleteModal v-if="showModal" @close="closeModal" @delete="deleteTodo" />
     </teleport>
 </template>
 
 
 <script>
     import {ref} from 'vue'
-    import { useRouter } from 'vue-router'
-    import ModalWin from '@/components/ModalWin.vue'
+    import {useRouter} from 'vue-router'
+    import DeleteModal from '@/components/DeleteModal.vue'
+    import ListView from '@/components/ListView.vue'
 
     export default {
         components: {
-            ModalWin
+            DeleteModal,
+            ListView
         },
         // props: ['todos']
         props: {
@@ -40,14 +45,16 @@
             }
         },
         emits: ['toggle-todo', 'delete'],
-        setup(props, {emit}) {
+        setup(props, {
+            emit
+        }) {
 
             // 실제 삭제될 id를 보관해 둠
             const todoDeleteId = ref(null);
 
             // 모달창 보여지는 상태
             const showModal = ref(false);
-            const openModal =  (index) => {
+            const openModal = (index) => {
                 showModal.value = true;
                 todoDeleteId.value = index;
             }
@@ -93,7 +100,6 @@
             };
         }
     };
-    
 </script>
 
 

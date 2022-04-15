@@ -4,13 +4,12 @@
         <div class="row">
             <!-- 제목 수정 및 입력 창 -->
             <div class="col-6">
-                <div class="form-group">
-                    <label>제목</label>
-                    <input type="text" class="form-control" v-model="todo.subject">
-                    <div v-if="subjectError" class="red-text bold-text">{{subjectError}}</div>
-                </div>
+                <InputView
+                    label="제목"
+                    :err="subjectError"
+                    v-model="todo.subject"
+                />
             </div>
-
             <!-- 상태 수정 창 -->
             <div class="col-6" v-if="editing">
                 <div class="form-group">
@@ -19,12 +18,10 @@
                         <button class="btn" :class="todo.complete ? 'btn-success' : 'btn-danger' "
                             @click="toggleTodoState" type="button">
                             {{ todo.complete ? 'Complete' : 'Incomplete' }}
-
                         </button>
                     </div>
                 </div>
             </div>
-
             <!-- 본문내용 입력 및 수정 창 -->
             <div class="col-12">
                 <div class="form-group">
@@ -32,42 +29,30 @@
                     <textarea class="form-control" cols="30" rows="10" v-model="todo.body"></textarea>
                 </div>
             </div>
-
         </div>
-
         <button class="btn btn-primary" type="submit" :disabled="todoUpdate">{{editing ? '수정': '생성'}}</button>
         <button class="btn btn-outline-dark ml-2" @click="moveBack" type="button">취소</button>
-
     </form>
 
     <transition name="fade">
         <!-- 안내창 -->
         <ToastBox v-if="showToast" :message="toastMessage" :type="toastAlertType" />
     </transition>
-    
-
 </template>
 
 <script>
-    import {
-        useRoute,
-        useRouter
-    } from 'vue-router';
+    import {useRoute, useRouter} from 'vue-router';
     import axios from 'axios';
-    import {
-        computed,
-        ref
-    } from 'vue';
+    import {computed, ref, onUpdated} from 'vue';
     import _ from 'lodash';
     import ToastBox from '@/components/ToastBox.vue';
-    import {
-        useToast
-    } from '@/composables/toast.js';
-
+    import {useToast} from '@/composables/toast.js';
+    import InputView from '@/components/InputView.vue';
     export default {
 
         components: {
-            ToastBox
+            ToastBox,
+            InputView
         },
         props: {
             editing: {
@@ -77,6 +62,11 @@
         },
         emits: ['update-todo', 'new-todo'],
         setup(props, {emit}) {
+
+            onUpdated( () => {
+                // console.log(todo.value.subject);
+            });
+
             const route = useRoute();
             const router = useRouter();
             // 현재 진행 및 수정 중인 todo 정보를 저장하고 있는 객체
@@ -217,16 +207,10 @@
 </script>
 
 <style>
-    .red-text {
-        color: red;
-    }
+    
 </style>
 
 <style scoped>
-    .bold-text {
-        font-weight: bold;
-    }
-
     .fade-enter-active,
     .fade-leave-active {
         transition: opacity 0.5s ease;
