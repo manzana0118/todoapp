@@ -5,12 +5,15 @@
 
 <script>
 import TodoForm from '@/components/TodoForm.vue'
+import { getCurrentInstance } from 'vue';
+
 export default {
     components: {
         TodoForm
     },
     emits: ['update-todo-toast'],
-    setup(props, {emit}) {
+    setup() {
+        const { emit } = getCurrentInstance();
         const updateTodo = () => {
             console.log("내용 갱신");
             emit('update-todo-toast',{});

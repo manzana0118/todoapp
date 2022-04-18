@@ -27,10 +27,11 @@
 
 
 <script>
+    import { getCurrentInstance } from 'vue';
     export default {
         emits: ['close-win'],
-        setup(props, {emit}) {
-
+        setup() {
+            const { emit } = getCurrentInstance();
             const onClose = () => {
                 emit('close-win');
             }

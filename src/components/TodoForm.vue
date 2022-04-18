@@ -42,12 +42,15 @@
 
 <script>
     import {useRoute, useRouter} from 'vue-router';
-    import axios from 'axios';
+    //import axios from 'axios';
+    import axios from '@/axios.js'
     import {computed, ref, onUpdated} from 'vue';
     import _ from 'lodash';
     import ToastBox from '@/components/ToastBox.vue';
     import {useToast} from '@/composables/toast.js';
     import InputView from '@/components/InputView.vue';
+    import { getCurrentInstance } from 'vue';
+
     export default {
 
         components: {
@@ -61,8 +64,8 @@
             }
         },
         emits: ['update-todo', 'new-todo'],
-        setup(props, {emit}) {
-
+        setup(props) {
+            const { emit } = getCurrentInstance();
             onUpdated( () => {
                 // console.log(todo.value.subject);
             });
@@ -97,7 +100,7 @@
                 // 내용을 가지고 올때 로딩 보여주고
                 loading.value = true;
                 try {
-                    const res = await axios.get(`http://localhost:3000/todos/${todoId}`);
+                    const res = await axios.get(`todos/${todoId}`);
                     todo.value = {
                         ...res.data
                     }; // spread 연산으로 내용물만 복사
@@ -157,7 +160,7 @@
                     }
                     if (props.editing) {
                         // 편집으로 진입한 경우
-                        res = await axios.put(`http://localhost:3000/todos/${todoId}`, data);
+                        res = await axios.put(`todos/${todoId}`, data);
                         // console.log(res);
                         // 원본이 갱신 되었으므로 이를 반영하여 새로 저장해 줌.
                         originalTodo.value = {...res.data};
@@ -165,7 +168,7 @@
                         triggerToast('데이터 업데이트에 성공하였습니다.', 'success');
                     }else{
                         // 신규 등록인 경우
-                        res = await axios.post(`http://localhost:3000/todos/`, data);
+                        res = await axios.post(`todos/`, data);
                         emit('new-todo',{});
                         triggerToast('데이터 저장에 성공하였습니다.', 'success');
                     }

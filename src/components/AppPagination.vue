@@ -21,12 +21,13 @@
 
 
 <script>
+    import { getCurrentInstance } from 'vue';
     export default {
         props: ['currentPage', 'allPage'],
-        setup(props, context)  {
-
+        setup()  {
+            const { emit } = getCurrentInstance();
             const getTodo = (page) => {
-                context.emit('page-show', page);
+                emit('page-show', page);
             }
 
             return {

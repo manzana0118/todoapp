@@ -21,10 +21,13 @@
 <script>
 // $emit: ['add-todo'];
 import {ref} from 'vue'
+import { getCurrentInstance } from 'vue';
+
 // js 코딩 장소
 export default {
     emits: ['add-todo'],
-    setup(props, {emit}) {
+    setup() {
+        const { emit } = getCurrentInstance();
         // 추가할 할일
         const todo = ref('');
         // 내용 입력 안내창 여부
