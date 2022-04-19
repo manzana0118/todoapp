@@ -27,9 +27,6 @@
         <!-- 페이지네이션 -->
         <hr />
         <AppPagination :currentPage="nowPage" :allPage="numberOfPages" @page-show="getTodo" />
-
-        <!-- 안내창 -->
-        <ToastBox v-if="showToast" :message="toastMessage" :type="toastAlertType"/>
     </div>
 </template>
 
@@ -48,7 +45,6 @@
     import AppTitle from '@/components/AppTitle.vue'
     import ErrorBox from '@/components/ErrorBox.vue'
     import AppPagination from '@/components/AppPagination.vue'
-    import ToastBox from '@/components/ToastBox.vue'
     import { useToast } from '@/composables/toast.js'
     import { useRouter } from 'vue-router'
 
@@ -57,8 +53,7 @@
             AppTitle,
             ErrorBox,
             AppPagination,
-            TodoList,
-            ToastBox,
+            TodoList
         },
         setup() {
             // 할일 생성 페이지로 이동
@@ -72,11 +67,7 @@
             const apptext = ref('Todo List');
 
             // 할일 목록(배열)을 저장
-            const todos = ref([{
-                id: 1,
-                subject: '할일',
-                complete: false
-            }]);
+            const todos = ref([]);
 
             // 에러 메세지
             const error = ref('');
@@ -228,7 +219,6 @@
                 limit,
                 nowPage,
                 numberOfPages,
-                ToastBox,
                 showToast,
                 toastMessage,
                 triggerToast,

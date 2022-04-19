@@ -33,11 +33,6 @@
         <button class="btn btn-primary" type="submit" :disabled="todoUpdate">{{editing ? '수정': '생성'}}</button>
         <button class="btn btn-outline-dark ml-2" @click="moveBack" type="button">취소</button>
     </form>
-
-    <transition name="fade">
-        <!-- 안내창 -->
-        <ToastBox v-if="showToast" :message="toastMessage" :type="toastAlertType" />
-    </transition>
 </template>
 
 <script>
@@ -46,15 +41,12 @@
     import axios from '@/axios.js'
     import {computed, ref, onUpdated} from 'vue';
     import _ from 'lodash';
-    import ToastBox from '@/components/ToastBox.vue';
     import {useToast} from '@/composables/toast.js';
     import InputView from '@/components/InputView.vue';
-    import { getCurrentInstance } from 'vue';
 
     export default {
 
         components: {
-            ToastBox,
             InputView
         },
         props: {
@@ -63,9 +55,7 @@
                 default: false
             }
         },
-        emits: ['update-todo', 'new-todo'],
         setup(props) {
-            const { emit } = getCurrentInstance();
             onUpdated( () => {
                 // console.log(todo.value.subject);
             });
@@ -164,21 +154,26 @@
                         // console.log(res);
                         // 원본이 갱신 되었으므로 이를 반영하여 새로 저장해 줌.
                         originalTodo.value = {...res.data};
-                        emit('update-todo',{});
+
+                        // TodoForm에서 alertBox를 띄웠던 것을 
+                        // 목록으로 옮겨서 띄웠다.
+
                         triggerToast('데이터 업데이트에 성공하였습니다.', 'success');
                     }else{
                         // 신규 등록인 경우
                         res = await axios.post(`todos/`, data);
-                        emit('new-todo',{});
+                        // 제목, 내용을 비운다
+                        todo.value.subject = '';
+                        todo.value.body = '';
                         triggerToast('데이터 저장에 성공하였습니다.', 'success');
                     }
-                    // 제목, 내용을 비운다
-                    todo.value.subject = '';
-                    todo.value.body = '';
-                    // 목록으로 돌아간다
-                    router.push({
-                        name: 'Todos'
-                    });
+                    // 신규등록인 경우에만 목록으로 돌아간다
+                    if(!props.editing) {
+                        router.push({
+                            name: 'Todos'
+                        });
+                    }
+                    
                 } catch (error) {
                     console.log(error);
                     if(props.editing){
@@ -212,21 +207,3 @@
 <style>
     
 </style>
-
-<style scoped>
-    .fade-enter-active,
-    .fade-leave-active {
-        transition: opacity 0.5s ease;
-    }
-
-    .fade-enter-from,
-    .fade-leave-to {
-        opacity: 0;
-    }
-
-    .fade-enter-to,
-    .fade-leave-from {
-        opacity: 1;
-    }
-</style>
-
